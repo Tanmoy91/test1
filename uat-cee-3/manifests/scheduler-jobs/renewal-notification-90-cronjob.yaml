@@ -1,0 +1,38 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: renewal-notification-90-cronjob
+  namespace: uat-cee-3
+spec:
+  schedule: "00 11 * * *"  # Runs every day at 9:30 AM
+  suspend: false
+  concurrencyPolicy: Allow
+  successfulJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 4
+      template:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: 'false'
+          creationTimestamp: null
+        spec:
+          containers:
+            - name: renewal-notification-90-cronjob
+              image: 618187721717.dkr.ecr.us-east-1.amazonaws.com/baseline-repository:linux-basic-tools-ssh-mc
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  curl --location 'http://scheduler-jobs-service/api/v1/renewal-notification' \
+                       --header 'Content-Type: application/json' \
+                       --data '{"no_of_days": 90}'
+              resources: {}
+              securityContext:
+                capabilities: {}
+              terminationMessagePath: /dev/termination-log
+              terminationMessagePolicy: File
+          restartPolicy: Never
+          serviceAccountName: default
+          terminationGracePeriodSeconds: 30

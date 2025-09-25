@@ -1,0 +1,17 @@
+apiVersion: v1
+data:
+  FINMO_AUTH_URL: 'https://lenderspotlight.ca/oauth/token'
+  FINMO_CLIENT_ID: '789982736'
+  FINMO_CLIENT_SECRET: 3RmD7VW0zCQnNpjQqCnD1j3hxWlu8NkmBJukeRPg
+  FINMO_LENDERS_URL: 'https://app.staging-finmo.ca/api/v1/lenders'
+  FINMO_PRODUCTS_URL: 'https://lenderspotlight.ca/robots/products'
+  FINMO_REDIRECT_URL: 'https://lenderspotlight.ca/auth.callback'
+  FINMO_SCOPE: '*'
+  GENERIC_SERVICE_URL: 'http://generic-application-service'
+  PORT: '3000'
+  WFE_APP_ID: infin8v2
+  FINMO_TOKEN: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlLZXkiOiJNR05oWldGaU9HTXROVGRtTVMwMFlUY3hMVGhoTlRVdE1EUXpaV05pTldNNVl6VTVMVEUyTmpBNE16Z3hOams1T1RJdFptbHViVzh0WVhCcCIsImludGVncmF0aW9uVG9rZW5JZCI6IjFkOGQ4MGQxLTk5NWUtNDVjMC05MDY1LTBmNTYxMjk2MTk1MyIsImJyb2tlcmFnZUlkIjoiMGNhZWFiOGMtNTdmMS00YTcxLThhNTUtMDQzZWNiNWM5YzU5IiwidHlwZSI6ImZpbm1vLWFwaSIsImNyZWF0ZWRBdCI6IjIwMjItMDgtMThUMTU6NTY6MTAuMTAzWiIsImlhdCI6MTY2MDgzODE3MH0.BjyPx8ctPuwYACevNtKCCycj5E-S03xcM2FdivlZsEk'
+kind: ConfigMap
+metadata:
+  name: lender-management-service-config-map
+  namespace: uat-cee-3

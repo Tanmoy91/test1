@@ -1,0 +1,27 @@
+apiVersion: v1
+data:
+  BASE_URL: 'https://infini8v2-api-gateway-uat-cee-3.inadev.net'
+  CAMPAIGN_ENTITY_ID: master_entity_campaign
+  CAPAIGN_RELATIONSHIP_ENTITY_ID: master_entities_campaign_relationship
+  CHANNEL_ENTITY_ID: master_entity_channel
+  CLIENTID: infin8v2UatWeb
+  CLIENTKEY: 02a7965b-54a3-4c58-818c-db178ccf2943
+  CONTACT_ENTITY_ID: contact
+  DEALSOURCE_ENTITY_ID: master_entity_deal_source
+  DOMAIN: 'https://infin8v2-ss-layer.inadev.net/client-keycloak/auth/realms/infin8v2uat'
+  INFIN8_USERS_ENTITY_ID: infin8_users
+  LDAPOU: ou=8Twelve
+  ldapScope: 'dc=8Twelve,dc=net'
+  LOAN_APPLICATION_ENTITY_ID: loan_application
+  PARTICIPANTS_ENTITY_ID: participants
+  REDIRECTURI: 'https://infin8v2uat.inadev.net/home'
+  SUBCHANNEL_ENTITY_ID: master_entity_sub_channel
+  WFE_APP_ID: infin8v2
+  REMOTE_ENTRY_BASE_URL: 'https://infin8v2-dealdetail-uat.inadev.net'
+  IDSS247R: 582a1001f464b0846a4d9f5265bce34b
+  userProfilePicPublicBucketName: "infin8v2-public-image-store-418272800838-uat-cee-3"
+  cee_force_login: 'https://infin8v2uat.inadev.net/home'
+kind: ConfigMap
+metadata:
+  name: infin8v2-config-map
+  namespace: uat-cee-3

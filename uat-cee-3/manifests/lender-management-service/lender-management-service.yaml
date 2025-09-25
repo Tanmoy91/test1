@@ -1,0 +1,172 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: lender-management-service
+  name: lender-management-service
+  namespace: 'uat-cee-3'
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: lender-management-service
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: lender-management-service
+    spec:
+      containers:
+        - args:
+            - >
+              sh /opt/application/env-lender-management.sh && node --require
+              '@opentelemetry/auto-instrumentations-node/register' dist/main.js
+          command:
+            - sh
+            - '-c'
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: 'http://otel-collector.monitoring.svc:4318'
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: http/protobuf
+            - name: OTEL_SERVICE_NAME
+              value: lender-management-service
+            - name: GENERIC_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: GENERIC_SERVICE_URL
+                  name: lender-management-service-config-map
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: PORT
+                  name: lender-management-service-config-map
+            - name: WFE_APP_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: WFE_APP_ID
+                  name: lender-management-service-config-map
+            - name: FINMO_AUTH_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: FINMO_AUTH_URL
+                  name: lender-management-service-config-map
+            - name: FINMO_LENDERS_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: FINMO_LENDERS_URL
+                  name: lender-management-service-config-map
+            - name: FINMO_PRODUCTS_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: FINMO_PRODUCTS_URL
+                  name: lender-management-service-config-map
+            - name: FINMO_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: FINMO_CLIENT_ID
+                  name: lender-management-service-config-map
+            - name: FINMO_CLIENT_SECRET
+              valueFrom:
+                configMapKeyRef:
+                  key: FINMO_CLIENT_SECRET
+                  name: lender-management-service-config-map
+            - name: FINMO_REDIRECT_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: FINMO_REDIRECT_URL
+                  name: lender-management-service-config-map
+            - name: FINMO_SCOPE
+              valueFrom:
+                configMapKeyRef:
+                  key: FINMO_SCOPE
+                  name: lender-management-service-config-map
+            - name: FINMO_TOKEN
+              valueFrom:
+                configMapKeyRef:
+                  key: FINMO_TOKEN
+                  name: lender-management-service-config-map
+          image: '577638400901.dkr.ecr.us-east-1.amazonaws.com/infini8v2-rt-dev:infin8v2-lender-management-application-1.0.35'
+          imagePullPolicy: IfNotPresent
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - sleep
+                  - '60'
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 120
+            periodSeconds: 20
+            successThreshold: 1
+            tcpSocket:
+              port: 3000
+            timeoutSeconds: 1
+          name: lender-management-service
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 3000
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 400m
+              memory: 512Mi
+            requests:
+              cpu: 256m
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 0
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 65
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: lender-management-service-hpa
+  namespace: 'uat-cee-3'
+spec:
+  maxReplicas: 5
+  metrics:
+    - resource:
+        name: cpu
+        target:
+          averageUtilization: 80
+          type: Utilization
+      type: Resource
+  minReplicas: 2
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: lender-management-service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lender-management-service
+  namespace: 'uat-cee-3'
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 3000
+  selector:
+    app: lender-management-service
+  type: ClusterIP

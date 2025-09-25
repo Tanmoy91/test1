@@ -1,0 +1,27 @@
+apiVersion: v1
+data:
+  API_PREFIX: api/v1
+  APMINSIGHT_APP_NAME: infin8v2-uat-contact-application
+  APMINSIGHT_APP_PORT: '3000'
+  APMINSIGHT_LICENSE_KEY: in_c5aced27869dacfab4e862e0d71b4795
+  CLIENT_ROLE: Client
+  CONTACT_LIABILITY_QUERY_ID: CEE_6810a1677d1555228d085985
+  CONTACT_RT_BASE_URL: 'https://infini8v2-rt.inadev.net/contacts'
+  DUMMY_EMAIL_DOMAIN: systemgenerated.com
+  EMAIL_SERVICE_BASE_URL: 'http://generic-events-service'
+  FILE_MANAGER_APP_BASE_URL: 'http://file-management-service'
+  GENERIC_APP_BASE_URL: 'http://generic-application-service/'
+  INFIN8_KEYCLOAK_CLIENT_ID: infin8v2UatWeb
+  LDAP_BASE_URL: 'http://user-authentication-service/authservice/ldap/v2'
+  PORT: '3000'
+  RBAC_SERVICE_BASE_URL: 'http://enterprise-bus-service/api/v2/uam'
+  REFERAL_CODE_ENTITY_NAME: generate_series
+  REFERAL_CODE_SEQUENCE_QUERY_ID: CEE_67975c72b986bb2b19904192
+  WFE_APP_ID: infin8v2
+  CONTACT_PROPERTY_QUERY_ID: CEE_6818cad97336036fe4b750b6
+  SUPER_ADMIN_KEYCLOAK_ID: '7595dd36-39eb-4709-8260-2ff111a98f12'
+  RBAC_SERVICE_BUS_BASE_URL: 'http://enterprise-bus-service/api/v2/uam'
+kind: ConfigMap
+metadata:
+  name: contacts-service-config-map
+  namespace: uat-cee-3

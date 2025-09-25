@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    alb.ingress.kubernetes.io/certificate-arn: >-
+      arn:aws:acm:us-east-1:418272800838:certificate/f7030367-a2c6-45dc-aa96-9cdd0f52c670
+    alb.ingress.kubernetes.io/group.name: infini8v2-rt-prod-public-alb
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: '30'
+    alb.ingress.kubernetes.io/healthcheck-port: traffic-port
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '28'
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=300
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS13-1-2-2021-06
+    alb.ingress.kubernetes.io/success-codes: '200'
+    alb.ingress.kubernetes.io/target-group-attributes: 'stickiness.enabled=true, stickiness.lb_cookie.duration_seconds=10800'
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:us-east-1:418272800838:regional/webacl/infini8v2-rt-prod/bbdff385-ebd5-43ab-a68b-261d4a9c4378
+    kubernetes.io/ingress.class: alb
+  name: infin8v2-frontend-ingress
+  namespace: uat-cee-3
+spec:
+  rules:
+    - host: infin8v2uat.inadev.net
+      http:
+        paths:
+          - backend:
+              service:
+                name: infin8v2-app-service
+                port:
+                  number: 80
+            path: /*
+            pathType: ImplementationSpecific

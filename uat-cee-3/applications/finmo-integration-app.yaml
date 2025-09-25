@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: finmo-integration-service-uat-cee-3
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+
+  labels:
+    environment: ceebit-rt-uat-cee-3
+spec:
+  destination:
+    namespace: uat-cee-3
+    server: https://8EC368CD0FBFAF12FAA04103486A2B95.gr7.us-east-1.eks.amazonaws.com
+  project: ceebit-rt-uat-cee-3
+  source:
+    repoURL: ssh://git@www.inadev.net:7999/iv/infin8-argocd-manifests.git #Applications Definition Repository.
+    path: uat-cee-3/manifests/finmo-integration-service
+    targetRevision: release/UAT #Release Tag.
+  syncPolicy:
+    retry:
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m0s
+      limit: 5
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - Validate=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+      - ApplyOutOfSyncOnly=true

@@ -1,0 +1,43 @@
+apiVersion: v1
+data:
+  APPLICATION_NAME: FINMO_INTERGRATION_SERVICE
+  CEE_APPLICATION_ID: harish.singh
+  CONTACT_BASE_URL: 'http://contacts-service/api/v1'
+  DEAL_BASE_URL: 'http://deals-service/api/v1'
+  FAILURE_IMPORT: dealfailurecreatedinfin8systemTemplate.html
+  FILE_MANAGEMENT_BASE_URL: 'http://file-management-service'
+  FINMO_BASE_API_URL: 'https://app.staging-finmo.ca/api/v1'
+  FINMO_TEAMID: ed96ee36-eb5c-4a12-8eef-9a857eee0877
+  FINMO_TOKEN: >-
+    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlLZXkiOiJNR05oWldGaU9HTXROVGRtTVMwMFlUY3hMVGhoTlRVdE1EUXpaV05pTldNNVl6VTVMVEUyTmpBNE16Z3hOams1T1RJdFptbHViVzh0WVhCcCIsImludGVncmF0aW9uVG9rZW5JZCI6IjFkOGQ4MGQxLTk5NWUtNDVjMC05MDY1LTBmNTYxMjk2MTk1MyIsImJyb2tlcmFnZUlkIjoiMGNhZWFiOGMtNTdmMS00YTcxLThhNTUtMDQzZWNiNWM5YzU5IiwidHlwZSI6ImZpbm1vLWFwaSIsImNyZWF0ZWRBdCI6IjIwMjItMDgtMThUMTU6NTY6MTAuMTAzWiIsImlhdCI6MTY2MDgzODE3MH0.BjyPx8ctPuwYACevNtKCCycj5E-S03xcM2FdivlZsEk
+  GENERIC_BUS_BASE_URL: 'http://generic-application-service'
+  LOGFILE_LOCATION: FINMO_INTERGRATION_SERVICE_LOGS
+  NOTIFICATION_HEADER_COOKIE: >-
+    AWSALB=EdJ278KeOMMx1Tbm+Wp0q2Uu05HrSg/1LYc1yXF8IqUk1HTXi8cHYokoqZQRmL9oxRjaw45CiQ95m0ZMXhEqQ2wHwtWKe4C9gurPmwt5V0R8/UkaKI8nCWdsiwSH;
+    AWSALBCORS=EdJ278KeOMMx1Tbm+Wp0q2Uu05HrSg/1LYc1yXF8IqUk1HTXi8cHYokoqZQRmL9oxRjaw45CiQ95m0ZMXhEqQ2wHwtWKe4C9gurPmwt5V0R8/UkaKI8nCWdsiwSH
+  NOTIFICATION_TYPE: EMAIL_NOTIFICATION
+  NOTIFICATION_URL: 'http://generic-events-service/publish/events'
+  PORT: '3000'
+  SILENT_WINSTON_LOG: 'false'
+  SPOTLIGHT_LENDERS: 'http://lender-management-service/api/v1/lenders/fetchLenders'
+  WFE_APP_ID: infin8v2
+  WINSTON_LOG_LEVEL: error
+  WINSTON_LOG_TYPE: file
+  LDAP_TOKEN_URl: 'https://infin8v2-ss-layer.inadev.net/client-keycloak/auth/realms/infin8v2uat/protocol/openid-connect/token'
+  LDAP_CLIENT_ID: 'infin8v2UatWeb'
+  LDAP_USERNAME: 'super.admin@inadev.com'
+  LDAP_PASSWORD: 'Password@123'
+  LDAP_GRANT_TYPE: 'password'
+  LDAP_CLIENT_SECRET: '02a7965b-54a3-4c58-818c-db178ccf2943'
+  LDAP_SCOPE: 'ou=8Twelve,dc=8Twelve,dc=net'
+  LDAP_USER_METADATA: 'uid=7595dd36-39eb-4709-8260-2ff111a98f12,ou=users,dc=8Twelve,dc=net'
+  SUCCESS_IMPORT: 'dealsuccessfullycreatedinfin8systemTemplate.html'
+  SENDER_EMAIL: 'infin8@8twelve.mortgage'
+  contact_us_email_id: 'infin8@8twelve.mortgage'
+  USER_ID: '7595dd36-39eb-4709-8260-2ff111a98f12'
+  X_USER_ID: '7595dd36-39eb-4709-8260-2ff111a98f12'
+  OVERRIDE_USER_ID: "false"
+kind: ConfigMap
+metadata:
+  name: finmo-integration-service-config-map
+  namespace: uat-cee-3

@@ -1,0 +1,81 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: daily-deal-refresh-cronjob
+  namespace: uat-cee-3
+spec:
+  schedule: "0 0 * * *"
+  suspend: false
+  concurrencyPolicy: Allow
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: "false"
+        spec:
+          containers:
+          - name: daily-deal-refresh-cronjob
+            image: 618187721717.dkr.ecr.us-east-1.amazonaws.com/baseline-repository:postgress-backup-v1
+            imagePullPolicy: IfNotPresent
+            command:
+            - /bin/bash
+            - -c
+            - |
+              export PGPASSWORD="${PGPASSWORD_ADMIN}"
+              missing_vars=()
+
+              [ -z "$PGPASSWORD_ADMIN" ] && missing_vars+=("PGPASSWORD_ADMIN")
+              [ -z "$HOST" ] && missing_vars+=("HOST")
+              [ -z "$PORT" ] && missing_vars+=("PORT")
+              [ -z "$USER" ] && missing_vars+=("USER")
+              [ -z "$DATABASE" ] && missing_vars+=("DATABASE")
+
+              LOG_DIR="/opt/Postgres_Backup"
+              mkdir -p "$LOG_DIR"
+              LOG_FILE="$LOG_DIR/daily_refresh_$(date +%F_%H-%M).log"
+
+              if [ ${#missing_vars[@]} -ne 0 ]; then
+                  echo "$(date '+%Y-%m-%d %H:%M:%S') - ERROR: Missing required env vars: ${missing_vars[*]}" >> "$LOG_FILE"
+                  exit 1
+              fi
+
+              execute_refresh() {
+                  local timestamp
+                  timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+
+                  local result
+                  result=$(psql -h "$HOST" -p "$PORT" -U "$USER" -d "$DATABASE" \
+                      -t -c "SELECT public.initial_populate_trigger_mv();" 2>&1)
+                  local exit_code=$?
+
+                  if [ -z "$(echo "$result" | tr -d '[:space:]')" ]; then
+                      result="No value returned from initial_populate_trigger_mv()"
+                  fi
+
+                  echo "$result"
+                  if [ $exit_code -eq 0 ]; then
+                      echo "$timestamp - SUCCESS: $result" >> "$LOG_FILE"
+                  else
+                      echo "$timestamp - ERROR ($exit_code): $result" >> "$LOG_FILE"
+                  fi
+              }
+
+              execute_refresh
+
+              if [ -n "$AWSS3bucket" ] && [ -n "$aws_region" ]; then
+                  aws s3 sync --storage-class REDUCED_REDUNDANCY "$LOG_DIR" "s3://$AWSS3bucket/" --region "$aws_region"
+                  echo "$(date '+%Y-%m-%d %H:%M:%S') - INFO: Logs synced to S3 (bucket=$AWSS3bucket, region=$aws_region)" >> "$LOG_FILE"
+              else
+                  echo "$(date '+%Y-%m-%d %H:%M:%S') - WARNING: AWSS3bucket or aws_region not set. Skipping S3 sync." >> "$LOG_FILE"
+              fi
+            envFrom:
+            - secretRef:
+                name: postgres-secret
+            resources: {}
+          restartPolicy: OnFailure
+          serviceAccountName: s3-serviceaccount
+          dnsPolicy: ClusterFirst
+          terminationGracePeriodSeconds: 30

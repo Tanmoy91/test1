@@ -1,0 +1,14 @@
+apiVersion: v1
+data:
+  GENERIC_APP_BASE_URL: 'http://generic-application-service/'
+  RE_ROUTE_TIME: '59 23 31 2 *'
+  WFE_APP_ID: infin8v2
+  GENERIC_EVENT_BASE_URL: 'http://generic-events-service'
+  FROM_EMAIL: 'infin8v2.test@inadev.com'
+  WORKFLOW_SERVICE_URL: 'http://workflow-manager-service/api/v1'
+  SUPER_ADMIN_KEYCLOAK_ID: '7595dd36-39eb-4709-8260-2ff111a98f12'
+  DEALS_SERVICE_URL: 'http://deals-service/api/v1'
+kind: ConfigMap
+metadata:
+  name: lead-routing-service-config-map
+  namespace: uat-cee-3

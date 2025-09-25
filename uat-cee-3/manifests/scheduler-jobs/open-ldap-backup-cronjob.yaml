@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ldap-secret
+  namespace: uat-cee-3
+type: Opaque
+stringData:
+  LDAP_BIND_PASSWORD: "ldap#7yPass"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ldap-backup-job
+  namespace: uat-cee-3
+spec:
+  schedule: "30 12 * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+         annotations:
+          sidecar.istio.io/inject: "false"
+        spec:
+          serviceAccountName: s3-serviceaccount
+          containers:
+            - name: ldap-backup
+              image: 618187721717.dkr.ecr.us-east-1.amazonaws.com/baseline-repository:ldap-backup
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: S3_BUCKET
+                  value: "infini8v2-uat-cee-3-openldap-backup"
+                - name: LDAP_HOST
+                  value: "ldap://openldap.uat-cee-3.svc.cluster.local:389"
+                - name: LDAP_BASE_DN
+                  value: "dc=8Twelve,dc=net"
+                - name: LDAP_BIND_DN
+                  value: "cn=admin,dc=8Twelve,dc=net"
+                - name: LDAP_BIND_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ldap-secret
+                      key: LDAP_BIND_PASSWORD
+                - name: S3_BUCKET
+                  value: "infini8v2-uat-cee-3-openldap-backup"
+                - name: AWS_REGION
+                  value: "us-east-1"
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -eu
+                  
+                  TIMESTAMP=$(date +%Y%m%d%H%M%S)
+                  DATE_DIR=$(date +%F_%R)
+                  BACKUP_FILE="ldap_full_export.ldif"
+
+                  echo "📌 Running ldapsearch backup..."
+                  ldapsearch -x \
+                    -H $LDAP_HOST \
+                    -b $LDAP_BASE_DN \
+                    -D $LDAP_BIND_DN \
+                    -w $LDAP_BIND_PASSWORD \
+                    "(objectClass=*)" > "$BACKUP_FILE"
+
+                  echo "📌 Uploading to S3..."
+                  aws s3 cp "$BACKUP_FILE" s3://$S3_BUCKET/$DATE_DIR/$BACKUP_FILE --region "$AWS_REGION"
+
+                  echo "✅ Backup complete: $DATE_DIR/$BACKUP_FILE"
+          restartPolicy: OnFailure

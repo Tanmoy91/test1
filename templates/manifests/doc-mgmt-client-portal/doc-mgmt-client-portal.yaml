@@ -1,0 +1,175 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: doc-mgmt-client-portal
+  name: doc-mgmt-client-portal
+  namespace: 'namespace_update_here'
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: doc-mgmt-client-portal
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: doc-mgmt-client-portal
+    spec:
+      containers:
+        - env:
+            - name: domain
+              valueFrom:
+                configMapKeyRef:
+                  key: DOMAIN
+                  name: doc-mgmt-client-portal-config-map
+            - name: clientId
+              valueFrom:
+                configMapKeyRef:
+                  key: CLIENTID
+                  name: doc-mgmt-client-portal-config-map
+            - name: clientKey
+              valueFrom:
+                configMapKeyRef:
+                  key: CLIENTKEY
+                  name: doc-mgmt-client-portal-config-map
+            - name: redirectUri
+              valueFrom:
+                configMapKeyRef:
+                  key: REDIRECTURI
+                  name: doc-mgmt-client-portal-config-map
+            - name: BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: BASE_URL
+                  name: doc-mgmt-client-portal-config-map
+            - name: wfe_app_id
+              valueFrom:
+                configMapKeyRef:
+                  key: WFE_APP_ID
+                  name: doc-mgmt-client-portal-config-map
+            - name: ldapOu
+              valueFrom:
+                configMapKeyRef:
+                  key: LDAPOU
+                  name: doc-mgmt-client-portal-config-map
+            - name: channel_entity_id
+              valueFrom:
+                configMapKeyRef:
+                  key: CHANNEL_ENTITY_ID
+                  name: doc-mgmt-client-portal-config-map
+            - name: subchannel_entity_id
+              valueFrom:
+                configMapKeyRef:
+                  key: SUBCHANNEL_ENTITY_ID
+                  name: doc-mgmt-client-portal-config-map
+            - name: dealsource_entity_id
+              valueFrom:
+                configMapKeyRef:
+                  key: DEALSOURCE_ENTITY_ID
+                  name: doc-mgmt-client-portal-config-map
+            - name: campaign_entity_id
+              valueFrom:
+                configMapKeyRef:
+                  key: CAMPAIGN_ENTITY_ID
+                  name: doc-mgmt-client-portal-config-map
+            - name: campaign_relationship_entity_id
+              valueFrom:
+                configMapKeyRef:
+                  key: CAPAIGN_RELATIONSHIP_ENTITY_ID
+                  name: doc-mgmt-client-portal-config-map
+            - name: participants_entity_id
+              valueFrom:
+                configMapKeyRef:
+                  key: PARTICIPANTS_ENTITY_ID
+                  name: doc-mgmt-client-portal-config-map
+            - name: infin8_users_entity_id
+              valueFrom:
+                configMapKeyRef:
+                  key: INFIN8_USERS_ENTITY_ID
+                  name: doc-mgmt-client-portal-config-map
+            - name: loan_application_entity_id
+              valueFrom:
+                configMapKeyRef:
+                  key: LOAN_APPLICATION_ENTITY_ID
+                  name: doc-mgmt-client-portal-config-map
+            - name: contact_entity_id
+              valueFrom:
+                configMapKeyRef:
+                  key: CONTACT_ENTITY_ID
+                  name: doc-mgmt-client-portal-config-map
+            - name: cee_force_login
+              valueFrom:
+                configMapKeyRef:
+                  key: cee_force_login
+                  name: doc-mgmt-client-portal-config-map
+          image: 'repository_name_update_here:image_tag_update_here'
+          imagePullPolicy: IfNotPresent
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - sleep
+                  - '60'
+          name: doc-mgmt-client-portal
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 200m
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 0
+      serviceAccount: default
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 65
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: doc-mgmt-client-portal-hpa
+  namespace: 'namespace_update_here'
+spec:
+  maxReplicas: 5
+  metrics:
+    - resource:
+        name: cpu
+        target:
+          averageUtilization: 80
+          type: Utilization
+      type: Resource
+  minReplicas: 2
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: doc-mgmt-client-portal
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: 'namespace_update_here'  
+  labels:
+    name: doc-mgmt-client-portal-service
+  name: doc-mgmt-client-portal-service
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: doc-mgmt-client-portal

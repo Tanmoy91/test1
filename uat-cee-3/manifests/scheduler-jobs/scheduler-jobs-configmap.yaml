@@ -1,0 +1,23 @@
+apiVersion: v1
+data:
+  GENERIC_SERVICE_URL: 'http://generic-application-service/'
+  INFIN8V2_API_DEALS_BASE_URL: 'http://deals-service/api/v1'
+  PORT: '3000'
+  NOTIFICATION_SERVICE_BASE_URL: 'http://generic-events-service/'
+  EMAIL_FROM: 'no-reply@infin8.io'
+  EVENT_TEMPLATE_NAME: template
+  TOKEN_URL: 'https://infin8v2-ss-layer.inadev.net/client-keycloak/auth/realms/infin8v2uat/protocol/openid-connect/token'
+  TOKEN_CLIENT_ID: 'infin8v2UatWeb'
+  TOKEN_CLIENT_SECRET: '02a7965b-54a3-4c58-818c-db178ccf2943'
+  TOKEN_USERNAME: 'prerit.mohan1@inadev.com'
+  TOKEN_PASSWORD: 'Password@12345'
+  PAYMENT_PENDING_TO_FILE_PAID_ALLOWED_USER_TYPES: Super-Admin,Deal-Owner
+  FILE_PAID_TO_BACKWARD_ALLOWED_USER_TYPES: Super-Admin
+  RULE_ENGINE_URL: 'http://rule-engine-service'
+  WFE_APP_ID: infin8v2
+  SUPER_ADMIN_X_USER_ID: '8abfe3b1-1945-4786-be45-bb900d267cfe'
+  SITE_URL: 'https://infin8v2uat.inadev.net/'
+kind: ConfigMap
+metadata:
+  name: scheduler-jobs-service-config-map
+  namespace: uat-cee-3

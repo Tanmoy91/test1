@@ -1,0 +1,238 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docusign-adapter-service
+  namespace: 'namespace_update_here'
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: docusign-adapter-service
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: docusign-adapter-service
+    spec:
+      containers:
+        - args:
+            - >-
+              sh /opt/docusign-adapter/env-docusign-adapter-service.sh && node
+              --require '@opentelemetry/auto-instrumentations-node/register'
+              dist/main.js
+          command:
+            - sh
+            - '-c'
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: 'http://otel-collector.monitoring.svc:4318'
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: http/protobuf
+            - name: OTEL_SERVICE_NAME
+              value: docusign-adapter-service
+            - name: INTEGRATION_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: INTEGRATION_KEY
+                  name: docusign-adapter-service-config-map
+            - name: WFE_APP_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: WFE_APP_ID
+                  name: docusign-adapter-service-config-map
+            - name: GENERIC_APP_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: GENERIC_APP_BASE_URL
+                  name: docusign-adapter-service-config-map
+            - name: FILE_MANAGEMENT_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: FILE_MANAGEMENT_BASE_URL
+                  name: docusign-adapter-service-config-map
+            - name: UPDATE_LA_DOCUMENT_MAP_STATUS_QUERY_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: UPDATE_LA_DOCUMENT_MAP_STATUS_QUERY_ID
+                  name: docusign-adapter-service-config-map
+            - name: USER_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: USER_ID
+                  name: docusign-adapter-service-config-map
+            - name: WEBHOOK_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: WEBHOOK_URL
+                  name: docusign-adapter-service-config-map
+            - name: BASE_PATH
+              valueFrom:
+                configMapKeyRef:
+                  key: BASE_PATH
+                  name: docusign-adapter-service-config-map
+            - name: ACCOUNT_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: ACCOUNT_ID
+                  name: docusign-adapter-service-config-map
+            - name: TEMPLATE_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: TEMPLATE_ID
+                  name: docusign-adapter-service-config-map
+            - name: CLIENT_USER_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: CLIENT_USER_ID
+                  name: docusign-adapter-service-config-map
+            - name: API_PREFIX
+              valueFrom:
+                configMapKeyRef:
+                  key: API_PREFIX
+                  name: docusign-adapter-service-config-map
+            - name: PRIVATE_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: PRIVATE_KEY
+                  name: docusign-adapter-service-config-map
+            - name: EMAIL_SERVICE_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: EMAIL_SERVICE_BASE_URL
+                  name: docusign-adapter-service-config-map
+            - name: EMAIL_FROM
+              valueFrom:
+                configMapKeyRef:
+                  key: EMAIL_FROM
+                  name: docusign-adapter-service-config-map
+            - name: EVENT_TEMPLATE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  key: EVENT_TEMPLATE_NAME
+                  name: docusign-adapter-service-config-map
+            - name: CLICK_WRAP_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: CLICK_WRAP_ID
+                  name: docusign-adapter-service-config-map
+            - name: CLICK_WRAP_WEB_LINK
+              valueFrom:
+                configMapKeyRef:
+                  key: CLICK_WRAP_WEB_LINK
+                  name: docusign-adapter-service-config-map
+            - name: DOCUSIGN_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  key: DOCUSIGN_VERSION
+                  name: docusign-adapter-service-config-map
+            - name: CREDIT_CONSENT_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: CREDIT_CONSENT_BASE_URL
+                  name: docusign-adapter-service-config-map
+            - name: DOCUSIGN_WEBFORM_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: DOCUSIGN_WEBFORM_BASE_URL
+                  name: docusign-adapter-service-config-map
+            - name: CONSENT_TEMPLATE_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: CONSENT_TEMPLATE_ID
+                  name: docusign-adapter-service-config-map
+            - name: DOCUSIGN_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: DOCUSIGN_BASE_URL
+                  name: docusign-adapter-service-config-map
+            - name: SUPER_ADMIN_KEYCLOAK_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: SUPER_ADMIN_KEYCLOAK_ID
+                  name: docusign-adapter-service-config-map
+          image: 'repository_name_update_here:image_tag_update_here'
+          imagePullPolicy: IfNotPresent
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - sleep
+                  - '60'
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 120
+            periodSeconds: 20
+            successThreshold: 1
+            tcpSocket:
+              port: 8000
+            timeoutSeconds: 1
+          name: docusign-adapter-service
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 8000
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 400m
+              memory: 512Mi
+            requests:
+              cpu: 256m
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 0
+      serviceAccount: default
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 65
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: docusign-adapter-service-hpa
+  namespace: 'namespace_update_here'
+spec:
+  maxReplicas: 5
+  metrics:
+    - resource:
+        name: cpu
+        target:
+          averageUtilization: 80
+          type: Utilization
+      type: Resource
+  minReplicas: 2
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: docusign-adapter-service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: docusign-adapter-service
+  namespace: 'namespace_update_here'
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 8000
+  selector:
+    app: docusign-adapter-service
+  sessionAffinity: None
+  type: ClusterIP

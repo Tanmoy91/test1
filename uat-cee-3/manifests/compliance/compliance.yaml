@@ -1,0 +1,135 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: compliance-form-service
+  namespace: 'uat-cee-3'
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: compliance-form-service
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: compliance-form-service
+    spec:
+      containers:
+        - args:
+            - >
+              sh /opt/application/env-compliance-form.sh && node --require
+              '@opentelemetry/auto-instrumentations-node/register' dist/main.js
+          command:
+            - sh
+            - '-c'
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: 'http://otel-collector.monitoring.svc:4318'
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: http/protobuf
+            - name: OTEL_SERVICE_NAME
+              value: compliance-form-service
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: PORT
+                  name: compliance-form-service-config-map
+            - name: WFE_APP_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: WFE_APP_ID
+                  name: compliance-form-service-config-map
+            - name: GENERIC_APP_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: GENERIC_APP_BASE_URL
+                  name: compliance-form-service-config-map
+            - name: INFIN8V2_API_DEALS_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: INFIN8V2_API_DEALS_BASE_URL
+                  name: compliance-form-service-config-map
+          image: '577638400901.dkr.ecr.us-east-1.amazonaws.com/infini8v2-rt-dev:infin8v2-complianceForm-application-1.1.87'
+          imagePullPolicy: IfNotPresent
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - sleep
+                  - '60'
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 120
+            periodSeconds: 20
+            successThreshold: 1
+            tcpSocket:
+              port: 3000
+            timeoutSeconds: 1
+          name: compliance-form-service
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 3000
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 400m
+              memory: 512Mi
+            requests:
+              cpu: 256m
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 0
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 65
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: compliance-form-service-hpa
+  namespace: 'uat-cee-3'
+spec:
+  maxReplicas: 5
+  metrics:
+    - resource:
+        name: cpu
+        target:
+          averageUtilization: 80
+          type: Utilization
+      type: Resource
+  minReplicas: 2
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: compliance-form-service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: compliance-form-service
+  namespace: 'uat-cee-3'
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 3000
+  selector:
+    app: compliance-form-service
+  type: ClusterIP

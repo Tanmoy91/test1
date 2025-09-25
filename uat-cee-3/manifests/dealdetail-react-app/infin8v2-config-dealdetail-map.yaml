@@ -1,0 +1,7 @@
+apiVersion: v1
+data:
+  BASE_URL: 'https://infini8v2-api-gateway-uat-cee-3.inadev.net'
+kind: ConfigMap
+metadata:
+  name: infin8v2-config-dealdetail-map
+  namespace: uat-cee-3

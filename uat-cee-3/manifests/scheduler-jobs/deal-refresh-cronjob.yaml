@@ -1,0 +1,63 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: deal-refresh-cronjob
+  namespace: uat-cee-3
+spec:
+  schedule: "* * * * *"
+  suspend: false
+  concurrencyPolicy: Allow
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: "false"
+        spec:
+          containers:
+          - name: deal-refresh-cronjob
+            image: 618187721717.dkr.ecr.us-east-1.amazonaws.com/baseline-repository:postgress-backup-v1
+            imagePullPolicy: IfNotPresent
+            command:
+            - /bin/sh
+            - -c
+            - |
+               export PGPASSWORD="${PGPASSWORD_ADMIN}"
+               mkdir -p "/opt/Postgres_Backup"
+               LOG_FILE="/opt/Postgres_Backup/queue_processor_cron_$(date +%F_%R).log"
+               execute_processor() {
+                   local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+                   local result=$(psql -h "$HOST" -p "$PORT" -U "$USER" -d "$DATABASE" \
+                                 -t -c "SELECT public.automated_queue_processor();" 2>&1)
+                   psql -h "$HOST" -p "$PORT" -U "$USER" -d "$DATABASE" \
+                                 -t -c "SELECT public.automated_queue_processor();"
+                   if [ -z "$(echo $result | tr -d '[:space:]')" ]; then
+                        result="No value returned from automated_queue_processor()"
+                   fi
+                   echo $result
+                   if [ $? -eq 0 ]; then
+                       echo "$timestamp - SUCCESS: $result" >> "$LOG_FILE"
+                   else
+                       echo "$timestamp - ERROR: $result" >> "$LOG_FILE"
+                   fi
+               }
+               
+               # Execute 6 times with 10-second intervals (total: 60 seconds)
+               for i in 1 2; do
+                   execute_processor
+               
+                   if [ "$i" -lt 2 ]; then
+                       sleep 30
+                   fi
+               done
+               aws s3 sync --storage-class REDUCED_REDUNDANCY /opt/Postgres_Backup/ s3://$AWSS3bucket/ --region $aws_region
+            envFrom:
+            - secretRef:
+                name: postgres-secret
+            resources: {}
+          restartPolicy: OnFailure
+          serviceAccountName: s3-serviceaccount
+          dnsPolicy: ClusterFirst
+          terminationGracePeriodSeconds: 30

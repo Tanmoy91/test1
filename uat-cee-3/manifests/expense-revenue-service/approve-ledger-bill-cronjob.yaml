@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: approve-ledger-bill-cronjob
+  namespace: uat-cee-3
+spec:
+  schedule: "0 16 * * 2 "
+  suspend: true
+  concurrencyPolicy: Allow
+  successfulJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 4
+      template:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: 'false'
+          creationTimestamp: null
+        spec:
+          containers:
+            - name: approve-ledger-bill-cronjob
+              image: 618187721717.dkr.ecr.us-east-1.amazonaws.com/baseline-repository:linux-basic-tools-ssh-mc
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  curl --location 'http://expense-revenue-service/api/v1/ledger/approve-ledger-bill' --header 'Content-Type: application/json'
+              resources: {}
+              securityContext:
+                capabilities: {}
+              terminationMessagePath: /dev/termination-log
+              terminationMessagePolicy: File
+          restartPolicy: Never
+          serviceAccountName: default
+          terminationGracePeriodSeconds: 30

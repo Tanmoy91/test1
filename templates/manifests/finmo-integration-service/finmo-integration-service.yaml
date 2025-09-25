@@ -1,0 +1,283 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: finmo-integration-service
+  name: finmo-integration-service
+  namespace: 'namespace_update_here'
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: finmo-integration-service
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: finmo-integration-service
+    spec:
+      containers:
+        - args:
+            - >
+              sh /opt/finmo-adapter/env-finmo-adapter.sh && node --require
+              '@opentelemetry/auto-instrumentations-node/register'
+              /opt/finmo-adapter/index.js
+          command:
+            - sh
+            - '-c'
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: 'http://otel-collector.monitoring.svc:4318'
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: http/protobuf
+            - name: OTEL_SERVICE_NAME
+              value: finmo-integration-service
+            - name: FINMO_BASE_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: FINMO_BASE_API_URL
+                  name: finmo-integration-service-config-map
+            - name: FINMO_TOKEN
+              valueFrom:
+                configMapKeyRef:
+                  key: FINMO_TOKEN
+                  name: finmo-integration-service-config-map
+            - name: FINMO_TEAMID
+              valueFrom:
+                configMapKeyRef:
+                  key: FINMO_TEAMID
+                  name: finmo-integration-service-config-map
+            - name: APPLICATION_NAME
+              valueFrom:
+                configMapKeyRef:
+                  key: APPLICATION_NAME
+                  name: finmo-integration-service-config-map
+            - name: LOGFILE_LOCATION
+              valueFrom:
+                configMapKeyRef:
+                  key: LOGFILE_LOCATION
+                  name: finmo-integration-service-config-map
+            - name: SILENT_WINSTON_LOG
+              valueFrom:
+                configMapKeyRef:
+                  key: SILENT_WINSTON_LOG
+                  name: finmo-integration-service-config-map
+            - name: WINSTON_LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  key: WINSTON_LOG_LEVEL
+                  name: finmo-integration-service-config-map
+            - name: WINSTON_LOG_TYPE
+              valueFrom:
+                configMapKeyRef:
+                  key: WINSTON_LOG_TYPE
+                  name: finmo-integration-service-config-map
+            - name: GENERIC_BUS_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: GENERIC_BUS_BASE_URL
+                  name: finmo-integration-service-config-map
+            - name: WFE_APP_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: WFE_APP_ID
+                  name: finmo-integration-service-config-map
+            - name: SPOTLIGHT_LENDERS
+              valueFrom:
+                configMapKeyRef:
+                  key: SPOTLIGHT_LENDERS
+                  name: finmo-integration-service-config-map
+            - name: DEAL_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: DEAL_BASE_URL
+                  name: finmo-integration-service-config-map
+            - name: CONTACT_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: CONTACT_BASE_URL
+                  name: finmo-integration-service-config-map
+            - name: CEE_APPLICATION_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: CEE_APPLICATION_ID
+                  name: finmo-integration-service-config-map
+            - name: NOTIFICATION_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: NOTIFICATION_URL
+                  name: finmo-integration-service-config-map
+            - name: NOTIFICATION_HEADER_COOKIE
+              valueFrom:
+                configMapKeyRef:
+                  key: NOTIFICATION_HEADER_COOKIE
+                  name: finmo-integration-service-config-map
+            - name: NOTIFICATION_TYPE
+              valueFrom:
+                configMapKeyRef:
+                  key: NOTIFICATION_TYPE
+                  name: finmo-integration-service-config-map
+            - name: FAILURE_IMPORT
+              valueFrom:
+                configMapKeyRef:
+                  key: FAILURE_IMPORT
+                  name: finmo-integration-service-config-map
+            - name: FILE_MANAGEMENT_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: FILE_MANAGEMENT_BASE_URL
+                  name: finmo-integration-service-config-map
+            - name: LDAP_TOKEN_URl
+              valueFrom:
+                configMapKeyRef:
+                  key: LDAP_TOKEN_URl
+                  name: finmo-integration-service-config-map
+            - name: LDAP_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: LDAP_CLIENT_ID
+                  name: finmo-integration-service-config-map  
+            - name: LDAP_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  key: LDAP_USERNAME
+                  name: finmo-integration-service-config-map 
+            - name: LDAP_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  key: LDAP_PASSWORD
+                  name: finmo-integration-service-config-map
+            - name: LDAP_GRANT_TYPE
+              valueFrom:
+                configMapKeyRef:
+                  key: LDAP_GRANT_TYPE
+                  name: finmo-integration-service-config-map 
+            - name: LDAP_CLIENT_SECRET
+              valueFrom:
+                configMapKeyRef:
+                  key: LDAP_CLIENT_SECRET
+                  name: finmo-integration-service-config-map    
+            - name: LDAP_SCOPE
+              valueFrom:
+                configMapKeyRef:
+                  key: LDAP_SCOPE
+                  name: finmo-integration-service-config-map  
+            - name: LDAP_USER_METADATA
+              valueFrom:
+                configMapKeyRef:
+                  key: LDAP_USER_METADATA
+                  name: finmo-integration-service-config-map    
+            - name: SUCCESS_IMPORT
+              valueFrom:
+                configMapKeyRef:
+                  key: SUCCESS_IMPORT
+                  name: finmo-integration-service-config-map 
+            - name: SENDER_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  key: SENDER_EMAIL
+                  name: finmo-integration-service-config-map    
+            - name: contact_us_email_id
+              valueFrom:
+                configMapKeyRef:
+                  key: contact_us_email_id
+                  name: finmo-integration-service-config-map      
+            - name: USER_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: USER_ID
+                  name: finmo-integration-service-config-map
+            - name: OVERRIDE_USER_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: OVERRIDE_USER_ID
+                  name: finmo-integration-service-config-map
+            - name: X_USER_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: X_USER_ID
+                  name: finmo-integration-service-config-map                
+          image: 'repository_name_update_here:image_tag_update_here'
+          imagePullPolicy: IfNotPresent
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - sleep
+                  - '60'
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 120
+            periodSeconds: 20
+            successThreshold: 1
+            tcpSocket:
+              port: 3000
+            timeoutSeconds: 1
+          name: finmo-integration-service
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 3000
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 400m
+              memory: 512Mi
+            requests:
+              cpu: 256m
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 0
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 65
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: finmo-integration-service-hpa
+  namespace: 'namespace_update_here'
+spec:
+  maxReplicas: 5
+  metrics:
+    - resource:
+        name: cpu
+        target:
+          averageUtilization: 80
+          type: Utilization
+      type: Resource
+  minReplicas: 2
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: finmo-integration-service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: finmo-integration-service
+  namespace: 'namespace_update_here'
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 3000
+  selector:
+    app: finmo-integration-service
+  type: ClusterIP

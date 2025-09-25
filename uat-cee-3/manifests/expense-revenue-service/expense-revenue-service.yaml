@@ -1,0 +1,208 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: expense-revenue-service
+  namespace: 'uat-cee-3'
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: expense-revenue-service
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: expense-revenue-service
+    spec:
+      containers:
+        - args:
+            - >
+              sh /opt/application/env-revenue.sh && node --require
+              '@opentelemetry/auto-instrumentations-node/register' dist/main.js
+          command:
+            - sh
+            - '-c'
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: 'http://otel-collector.monitoring.svc:4318'
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: http/protobuf
+            - name: OTEL_SERVICE_NAME
+              value: expense-revenue-service
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: PORT
+                  name: expense-revenue-service-config-map
+            - name: WFE_APP_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: WFE_APP_ID
+                  name: expense-revenue-service-config-map
+            - name: DEAL_RT_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: DEAL_RT_BASE_URL
+                  name: expense-revenue-service-config-map
+            - name: INFIN8V2_API_DEALS_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: INFIN8V2_API_DEALS_BASE_URL
+                  name: expense-revenue-service-config-map
+            - name: GENERIC_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: GENERIC_SERVICE_URL
+                  name: expense-revenue-service-config-map
+            - name: GENERIC_APP_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: GENERIC_APP_BASE_URL
+                  name: expense-revenue-service-config-map
+            - name: XERO_REDIRECT_URI
+              valueFrom:
+                configMapKeyRef:
+                  key: XERO_REDIRECT_URI
+                  name: expense-revenue-service-config-map
+            - name: XERO_CLIENT_SECRET
+              valueFrom:
+                configMapKeyRef:
+                  key: XERO_CLIENT_SECRET
+                  name: expense-revenue-service-config-map
+            - name: XERO_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: XERO_CLIENT_ID
+                  name: expense-revenue-service-config-map
+            - name: API_GATEWAY_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: API_GATEWAY_URL
+                  name: expense-revenue-service-config-map
+            - name: TOKEN_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: TOKEN_CLIENT_ID
+                  name: expense-revenue-service-config-map
+            - name: TOKEN_CLIENT_SECRET
+              valueFrom:
+                configMapKeyRef:
+                  key: TOKEN_CLIENT_SECRET
+                  name: expense-revenue-service-config-map
+            - name: TOKEN_CLIENT_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  key: TOKEN_CLIENT_USERNAME
+                  name: expense-revenue-service-config-map
+            - name: TOKEN_CLIENT_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  key: TOKEN_CLIENT_PASSWORD
+                  name: expense-revenue-service-config-map
+            - name: TOKEN_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: TOKEN_URL
+                  name: expense-revenue-service-config-map
+            - name: XERO_BANK_ACCOUNT_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: XERO_BANK_ACCOUNT_ID
+                  name: expense-revenue-service-config-map
+            - name: FILE_MANAGEMENT_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: FILE_MANAGEMENT_BASE_URL
+                  name: expense-revenue-service-config-map
+            - name: USER_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: USER_ID
+                  name: expense-revenue-service-config-map 
+            - name: XERO_ACCOUNT_PRODUCTION
+              valueFrom:
+                configMapKeyRef:
+                  key: XERO_ACCOUNT_PRODUCTION
+                  name: expense-revenue-service-config-map
+          image: '577638400901.dkr.ecr.us-east-1.amazonaws.com/infini8v2-rt-dev:infin8v2-expense-revenue-application-1.5.136'
+          imagePullPolicy: IfNotPresent
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - sleep
+                  - '60'
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 120
+            periodSeconds: 20
+            successThreshold: 1
+            tcpSocket:
+              port: 3100
+            timeoutSeconds: 1
+          name: expense-revenue-service
+          ports:
+            - containerPort: 3100
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 3100
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 400m
+              memory: 512Mi
+            requests:
+              cpu: 256m
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 0
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 65
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: expense-revenue-service-hpa
+  namespace: 'uat-cee-3'
+spec:
+  maxReplicas: 5
+  metrics:
+    - resource:
+        name: cpu
+        target:
+          averageUtilization: 80
+          type: Utilization
+      type: Resource
+  minReplicas: 2
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: expense-revenue-service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: expense-revenue-service
+  namespace: 'uat-cee-3'
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 3100
+  selector:
+    app: expense-revenue-service
+  type: ClusterIP

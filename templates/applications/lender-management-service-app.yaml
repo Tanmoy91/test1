@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: lender-management-service-namespace_update_here
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  labels:
+    environment: environment_update_here
+spec:
+  destination:
+    namespace: namespace_update_here
+    server: https://kubernetes.default.svc
+  project: project_name_update_here
+  sources:
+    repoURL: ssh://git@www.inadev.net:7999/iv/infin8-argocd-manifests.git #Applications Definition Repository.
+    path: namespace_update_here/manifests/lender-management-service
+    targetRevision: branch_update_here #Release Tag.
+  syncPolicy:
+    retry:
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m0s
+      limit: 5
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - Validate=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+      - ApplyOutOfSyncOnly=true

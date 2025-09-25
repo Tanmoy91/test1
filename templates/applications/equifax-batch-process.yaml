@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: equifax-batch-process-namespace_update_here
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    environment: environment_update_here
+spec:
+  destination:
+    namespace: namespace_update_here
+    server: https://9D0F78C0DE9272415C868066DB171BBA.gr7.us-east-1.eks.amazonaws.com
+  project: project_name_update_here
+  source:
+    repoURL: ssh://git@www.inadev.net:7999/iv/infin8-argocd-manifests.git #Applications Definition Repository.
+    path: namespace_update_here/manifests/equifax-batch-process
+    targetRevision: branch_update_here #Release Tag.
+  syncPolicy:
+    retry:
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m0s
+      limit: 5
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - Validate=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+      - ApplyOutOfSyncOnly=true

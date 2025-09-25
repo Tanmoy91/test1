@@ -1,0 +1,195 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scheduler-jobs-service
+  namespace: 'namespace_update_here'
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: scheduler-jobs-service
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: scheduler-jobs-service
+    spec:
+      containers:
+        - args:
+            - >
+              sh /opt/application/scheduler-jobs.sh && node --require
+              '@opentelemetry/auto-instrumentations-node/register' dist/main.js
+          command:
+            - sh
+            - '-c'
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: 'http://otel-collector.monitoring.svc:4318'
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: http/protobuf
+            - name: OTEL_SERVICE_NAME
+              value: scheduler-jobs-service
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: PORT
+                  name: scheduler-jobs-service-config-map
+            - name: WFE_APP_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: WFE_APP_ID
+                  name: scheduler-jobs-service-config-map
+            - name: GENERIC_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: GENERIC_SERVICE_URL
+                  name: scheduler-jobs-service-config-map
+            - name: NOTIFICATION_SERVICE_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: NOTIFICATION_SERVICE_BASE_URL
+                  name: scheduler-jobs-service-config-map
+            - name: EMAIL_FROM
+              valueFrom:
+                configMapKeyRef:
+                  key: EMAIL_FROM
+                  name: scheduler-jobs-service-config-map
+            - name: EVENT_TEMPLATE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  key: EVENT_TEMPLATE_NAME
+                  name: scheduler-jobs-service-config-map
+            - name: TOKEN_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: TOKEN_URL
+                  name: scheduler-jobs-service-config-map
+            - name: TOKEN_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: TOKEN_CLIENT_ID
+                  name: scheduler-jobs-service-config-map      
+            - name: TOKEN_CLIENT_SECRET
+              valueFrom:
+                configMapKeyRef:
+                  key: TOKEN_CLIENT_SECRET
+                  name: scheduler-jobs-service-config-map  
+            - name: TOKEN_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  key: TOKEN_USERNAME
+                  name: scheduler-jobs-service-config-map  
+            - name: TOKEN_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  key: TOKEN_PASSWORD
+                  name: scheduler-jobs-service-config-map  
+            - name: PAYMENT_PENDING_TO_FILE_PAID_ALLOWED_USER_TYPES
+              valueFrom:
+                configMapKeyRef:
+                  key: PAYMENT_PENDING_TO_FILE_PAID_ALLOWED_USER_TYPES
+                  name: scheduler-jobs-service-config-map   
+            - name: FILE_PAID_TO_BACKWARD_ALLOWED_USER_TYPES
+              valueFrom:
+                configMapKeyRef:
+                  key: FILE_PAID_TO_BACKWARD_ALLOWED_USER_TYPES
+                  name: scheduler-jobs-service-config-map  
+            - name: RULE_ENGINE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: RULE_ENGINE_URL
+                  name: scheduler-jobs-service-config-map
+            - name: SUPER_ADMIN_X_USER_ID
+              valueFrom:  
+                configMapKeyRef:
+                  key: SUPER_ADMIN_X_USER_ID
+                  name: scheduler-jobs-service-config-map
+            - name: SITE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: SITE_URL
+                  name: scheduler-jobs-service-config-map                                                                                                                                                                                                             
+          image: 'repository_name_update_here:image_tag_update_here'
+          imagePullPolicy: IfNotPresent
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - sleep
+                  - '60'
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 120
+            periodSeconds: 20
+            successThreshold: 1
+            tcpSocket:
+              port: 3000
+            timeoutSeconds: 1
+          name: scheduler-jobs-service
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 3000
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 400m
+              memory: 512Mi
+            requests:
+              cpu: 256m
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 0
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 65
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: scheduler-jobs-service-hpa
+  namespace: 'namespace_update_here'
+spec:
+  maxReplicas: 5
+  metrics:
+    - resource:
+        name: cpu
+        target:
+          averageUtilization: 80
+          type: Utilization
+      type: Resource
+  minReplicas: 2
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: scheduler-jobs-service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scheduler-jobs-service
+  namespace: 'namespace_update_here'
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 3000
+  selector:
+    app: scheduler-jobs-service
+  type: ClusterIP

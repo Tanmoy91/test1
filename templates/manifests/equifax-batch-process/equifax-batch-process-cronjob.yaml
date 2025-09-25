@@ -1,0 +1,94 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: equifax-batch-process-cronjob
+  namespace: 'namespace_update_here'
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  schedule: "59 23 * * * "
+  suspend: false
+  concurrencyPolicy: Allow
+  successfulJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 4
+      template:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: 'false'
+          creationTimestamp: null
+        spec:
+          containers:
+            - name: equifax-batch-process-cronjob
+              image: 'repository_name_update_here:image_tag_update_here'
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: EQUIFAX_SFTP_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      name: equifax-batch-process-config-map
+                      key: EQUIFAX_SFTP_HOST
+                - name: EQUIFAX_SFTP_PORT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: equifax-batch-process-config-map
+                      key: EQUIFAX_SFTP_PORT
+                - name: EQUIFAX_SFTP_USER
+                  valueFrom:
+                    configMapKeyRef:
+                      name: equifax-batch-process-config-map
+                      key: EQUIFAX_SFTP_USER
+                - name: EQUIFAX_SFTP_FILE_NAME
+                  valueFrom:
+                    configMapKeyRef:
+                      name: equifax-batch-process-config-map
+                      key: EQUIFAX_SFTP_FILE_NAME
+                - name: PRIVATE_KEY_PATH
+                  valueFrom:
+                    configMapKeyRef:
+                      name: equifax-batch-process-config-map
+                      key: PRIVATE_KEY_PATH
+                - name: PUBLIC_KEY_PATH
+                  valueFrom:
+                    configMapKeyRef:
+                      name: equifax-batch-process-config-map
+                      key: PUBLIC_KEY_PATH
+                - name: REMOTE_DIR
+                  valueFrom:
+                    configMapKeyRef:
+                      name: equifax-batch-process-config-map
+                      key: REMOTE_DIR
+                - name: LENDERS_API
+                  valueFrom:
+                    configMapKeyRef:
+                      name: equifax-batch-process-config-map
+                      key: LENDERS_API
+                - name: LENDERS_API_TOKEN
+                  valueFrom:
+                    configMapKeyRef:
+                      name: equifax-batch-process-config-map
+                      key: LENDERS_API_TOKEN
+                - name: GENERIC_QUERY_API
+                  valueFrom:
+                    configMapKeyRef:
+                      name: equifax-batch-process-config-map
+                      key: GENERIC_QUERY_API
+                - name: USER_ID
+                  valueFrom:
+                    configMapKeyRef:
+                      name: equifax-batch-process-config-map
+                      key: USER_ID
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  echo "Executing Equifax Batch Process Cron Job"; node equifaxBatchProcessor.js
+              resources: {}
+              securityContext:
+                capabilities: {}
+              terminationMessagePath: /dev/termination-log
+              terminationMessagePolicy: File
+          restartPolicy: Never
+          serviceAccountName: default
+          terminationGracePeriodSeconds: 30

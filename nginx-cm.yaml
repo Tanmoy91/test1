@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-custom-config
+  namespace: uat-cee-3
+data:
+  custom-virtualhost.conf: |
+    location /deals/ {
+      proxy_pass http://deals-service/;
+      client_max_body_size 100M;
+    }
+    location /contacts/ {
+      proxy_pass http://contacts-service/;
+      client_max_body_size 100M;
+    }
+    location /finmo-integration/ {
+      proxy_pass http://finmo-integration-service/;
+      client_max_body_size 100M;
+    }
+    location /lead-routing/ {
+      proxy_pass http://lead-routing-service/;
+      client_max_body_size 100M;
+    }
+    location /docusign-adapter/ {
+      proxy_pass http://docusign-adapter-service/;
+      client_max_body_size 100M;
+    }
+    location /lender-management/ {
+      proxy_pass http://lender-management-service/;
+      client_max_body_size 100M;
+    }
+    location /expense-revenue/ {
+      proxy_pass http://expense-revenue-service/;
+      client_max_body_size 100M;
+    }
+    location /compliance-form/ {
+      proxy_pass http://compliance-form-service/;
+      client_max_body_size 100M;
+    }
+    location /workflow-manager/ {
+      proxy_pass http://workflow-manager-service/;
+      client_max_body_size 100M;
+    }
+    location /scheduler-jobs/ {
+      proxy_pass http://scheduler-jobs-service/;
+      client_max_body_size 100M;
+    }                

@@ -1,0 +1,26 @@
+apiVersion: v1
+data:
+  API_GATEWAY_URL: 'https://infini8v2-api-gateway-uat-cee-3.inadev.net/infin8v2'
+  DEAL_RT_BASE_URL: 'https://infini8v2-rt.inadev.net/deals'
+  GENERIC_APP_BASE_URL: 'http://generic-application-service/'
+  GENERIC_SERVICE_URL: 'http://generic-application-service/'
+  INFIN8V2_API_DEALS_BASE_URL: 'http://deals-service/api/v1'
+  PORT: '3100'
+  TOKEN_CLIENT_ID: infin8v2UatWeb
+  TOKEN_CLIENT_PASSWORD: Password@123
+  TOKEN_CLIENT_SECRET: 02a7965b-54a3-4c58-818c-db178ccf2943
+  TOKEN_CLIENT_USERNAME: super.admin@inadev.com
+  TOKEN_URL: >-
+    https://infin8v2-ss-layer.inadev.net/client-keycloak/auth/realms/infin8v2uat/protocol/openid-connect/token
+  WFE_APP_ID: infin8v2
+  XERO_BANK_ACCOUNT_ID: 234A74AA-14BB-49A1-A9D5-A4321B675EEC
+  XERO_CLIENT_ID: 4BC11FFEFD564FFC90C19302FFF07037
+  XERO_CLIENT_SECRET: Wep2RN2yt0uCw5wm3odhbNI7O4zAjTDC-2Oy8qFF-_aDQ3-7
+  XERO_REDIRECT_URI: 'https://infini8v2-rt.inadev.net/expense-revenue/api/v1/xero/callback'
+  FILE_MANAGEMENT_BASE_URL: 'http://file-management-service'
+  USER_ID: 7595dd36-39eb-4709-8260-2ff111a98f12
+  XERO_ACCOUNT_PRODUCTION: 'false'
+kind: ConfigMap
+metadata:
+  name: expense-revenue-service-config-map
+  namespace: uat-cee-3

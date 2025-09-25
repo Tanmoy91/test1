@@ -1,0 +1,26 @@
+apiVersion: v1
+data:
+  EMAIL_FROM: no-reply@infin8.io
+  EVENT_TEMPLATE_NAME: template
+  FILE_PAID_TO_BACKWARD_ALLOWED_USER_TYPES: Super-Admin
+  GENERIC_SERVICE_URL: 'http://generic-application-service/'
+  NOTIFICATION_SERVICE_BASE_URL: 'http://generic-events-service'
+  PAYMENT_PENDING_TO_FILE_PAID_ALLOWED_USER_TYPES: 'Super-Admin,Deal-Owner'
+  PORT: '3000'
+  RULE_ENGINE_URL: 'http://rule-engine-service'
+  TOKEN_CLIENT_ID: infin8v2UatWeb
+  TOKEN_CLIENT_SECRET: 02a7965b-54a3-4c58-818c-db178ccf2943
+  TOKEN_PASSWORD: Password@123
+  TOKEN_URL: >-
+    https://infin8v2-ss-layer.inadev.net/client-keycloak/auth/realms/infin8v2uat/protocol/openid-connect/token
+  TOKEN_USERNAME: super.admin@inadev.com  
+  WFE_APP_ID: infin8v2
+  AWS_REGION: us-east-1
+  WHITE_LIST_DOMAINS: inadev.com,infin8.io,8twelve.mortgage  
+  SITE_URL: 'https://infin8v2uat.inadev.net'
+  SUPER_ADMIN_X_USER_ID: 7595dd36-39eb-4709-8260-2ff111a98f12
+  CUSTOMER_IO_TOKEN: 'Basic YTMyYmU5MWFmNTExZWIxZjdmMzg6ODBkMDZhNDMxMDdiOGE2MzgxYzY='
+kind: ConfigMap
+metadata:
+  name: workflow-manager-service-config-map
+  namespace: uat-cee-3

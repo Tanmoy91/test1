@@ -1,0 +1,153 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: deal-cleanup-cronjob
+  namespace: uat-cee-3
+spec:
+  schedule: "0 3 * * *"
+  suspend: false
+  concurrencyPolicy: Allow
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: "false"
+        spec:
+          containers:
+          - name: deal-cleanup-cronjob
+            image: 618187721717.dkr.ecr.us-east-1.amazonaws.com/baseline-repository:postgress-backup-v1
+            imagePullPolicy: IfNotPresent
+            command:
+            - /bin/sh
+            - -c
+            - |
+               export PGPASSWORD="${PGPASSWORD_ADMIN}"
+               LOG_DIR="/opt/Postgres_Backup"
+               LOG_FILE="$LOG_DIR/deal_cleanup_cron_$(date +%F_%R).log"
+               ERROR_LOG="$LOG_DIR/deal_cleanup_errors_$(date +%F_%R).log"
+               
+               # Create log directory if it doesn't exist
+               mkdir -p "$LOG_DIR"
+               
+               # Function to log with timestamp
+               log_message() {
+                   local level="$1"
+                   local message="$2"
+                   local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+                   echo "$timestamp [$level] $message" >> "$LOG_FILE"
+                   
+                   # Also log errors to separate error log
+                   if [ "$level" = "ERROR" ]; then
+                       echo "$timestamp [$level] $message" >> "$ERROR_LOG"
+                   fi
+               }
+               
+               # Function to execute cleanup with error handling
+               execute_cleanup() {
+                   local cleanup_type="$1"
+                   local sql_command="$2"
+                   local description="$3"
+                   
+                   log_message "INFO" "Starting $description..."
+                   
+                   local result=$(psql -h "$HOST" -p "$PORT" -U "$USER" -d "$DATABASE" \
+                                 -t -c "$sql_command" 2>&1)
+                   local exit_code=$?
+                   
+                   if [ $exit_code -eq 0 ]; then
+                       # Clean up the result (remove extra whitespace)
+                       result=$(echo "$result" | tr -d '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+                       log_message "SUCCESS" "$description completed: $result"
+                       return 0
+                   else
+                       log_message "ERROR" "$description failed: $result"
+                       return 1
+                   fi
+               }
+               
+               # Function to get system stats before and after cleanup
+               get_cleanup_stats() {
+                   local stats_result=$(psql -h "$HOST" -p "$PORT" -U "$USER" -d "$DATABASE" \
+                                       -t -c "SELECT 
+                                               log_table || ': ' || total_records || ' records (' || retention_recommendation || ')' as stats
+                                              FROM get_log_table_stats() 
+                                              ORDER BY log_table;" 2>&1)
+                   
+                   if [ $? -eq 0 ]; then
+                       echo "$stats_result" | while IFS= read -r line; do
+                           if [ -n "$line" ]; then
+                               log_message "STATS" "$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+                           fi
+                       done
+                   else
+                       log_message "ERROR" "Failed to get cleanup stats: $stats_result"
+                   fi
+               }
+               
+               # Main cleanup execution
+               main() {
+                   log_message "INFO" "=== TRIGGER SYSTEM CLEANUP STARTED ==="
+                   
+                   # Get pre-cleanup statistics
+                   log_message "INFO" "Pre-cleanup statistics:"
+                   get_cleanup_stats
+                   
+                   # Execute different cleanup strategies based on day of week
+                   local day_of_week=$(date +%u)  # 1=Monday, 7=Sunday
+                   local cleanup_success=0
+                   
+                   case $day_of_week in
+                       1) # Monday - Aggressive cleanup (start week fresh)
+                           execute_cleanup "aggressive" "SELECT cleanup_logs_aggressive();" "Weekly aggressive cleanup"
+                           cleanup_success=$?
+                           ;;
+                       7) # Sunday - Standard cleanup + stats
+                           execute_cleanup "standard" "SELECT cleanup_logs_quick();" "Weekly standard cleanup"
+                           cleanup_success=$?
+                           ;;
+                       *) # Tuesday-Saturday - Automated cleanup (only if needed)
+                           execute_cleanup "automated" "SELECT automated_log_cleanup();" "Daily automated cleanup"
+                           cleanup_success=$?
+                           ;;
+                   esac
+                   
+                   # Get post-cleanup statistics if cleanup was successful
+                   if [ $cleanup_success -eq 0 ]; then
+                       log_message "INFO" "Post-cleanup statistics:"
+                       get_cleanup_stats
+                       
+                       # Optional: Run queue processor cleanup as well
+                       execute_cleanup "queue" "SELECT cleanup_processed_queue_items(24);" "Queue maintenance cleanup"
+                   fi
+                   
+                   # Weekly disk space check (Sundays)
+                   if [ $day_of_week -eq 7 ]; then
+                       log_message "INFO" "Weekly disk space check:"
+                       local disk_usage=$(df -h "$LOG_DIR" | tail -1 | awk '{print $5 " used on " $1}')
+                       log_message "STATS" "Log directory disk usage: $disk_usage"
+                       
+                       # Clean old log files (keep last 30 days)
+                       find "$LOG_DIR" -name "*.log" -type f -mtime +30 -delete 2>/dev/null
+                       log_message "INFO" "Cleaned log files older than 30 days"
+                   fi
+                   
+                   log_message "INFO" "=== TRIGGER SYSTEM CLEANUP COMPLETED ==="
+               }
+               
+               # Trap to handle script interruption
+               trap 'log_message "ERROR" "Cleanup script interrupted"; exit 1' INT TERM
+               
+               # Execute main function
+               main
+               aws s3 sync --storage-class REDUCED_REDUNDANCY /opt/Postgres_Backup/ s3://$AWSS3bucket/ --region $aws_region
+            envFrom:
+            - secretRef:
+                name: postgres-secret
+            resources: {}
+          restartPolicy: OnFailure
+          serviceAccountName: s3-serviceaccount
+          dnsPolicy: ClusterFirst
+          terminationGracePeriodSeconds: 30

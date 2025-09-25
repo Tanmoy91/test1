@@ -1,0 +1,37 @@
+apiVersion: v1
+data:
+  CONTACT_SERVICE_URL: 'http://contacts-service/api/v1/contacts'
+  DEAL_RT_BASE_URL: 'https://infini8v2-rt.inadev.net/deals'
+  DOCUMENT_LIST_QUERY_ID: CEE_675bc37e58f87e762c3ba560
+  EQUIFAX_CUSTOME_ID: for billing get from Clients
+  EQUIFAX_INQUIRY_TYPE: I
+  EQUIFAX_JOINT_ACCESS_INDICATOR: 'N'
+  EQUIFAX_TOKEN_GRANT_TYPE: client_credentials
+  EQUIFAX_TOKEN_SCOPE: 'https://api.equifax.ca/inquiry/1.0/sts'
+  EQUIFAX_TOKEN_URL: 'https://api.uat.equifax.ca/v2/oauth/token'
+  EQUIFAX_URL: 'https://api.uat.equifax.ca/inquiry/1.0/sts'
+  FILE_MANAGEMENT_BASE_URL: 'http://file-management-service'
+  FINMO_SERVICE_URL: 'http://finmo-integration-service/api/v1/finmo-adapter'
+  GENERIC_SERVICE_URL: 'http://generic-application-service'
+  PORT: '3000'
+  PRESIGNED_URL_GROUP_ID: testing
+  PRESIGNED_URL_USERNAME: harish.singh
+  REDIS_MASTER_NAME: mymaster
+  REDIS_PASSWORD: JD8tQfumPL
+  REDIS_SENTINEL_HOST: redis-headless
+  REDIS_SENTINEL_PORT: '26379'
+  TU_MEMBER_CODE: ZZ97570123
+  TU_PASSWORD: YDTR@365
+  TU_PRODUCT: '07000'
+  TU_ROUTE_DEST: Canada
+  TU_ROUTE_TYPE: TEST
+  TU_URL: 'https://uat.tu.tuconline.com/xml/r4.asp'
+  TU_USER_REFFERENCE: TEST
+  UPLOADED_DOCUMENT_TYPE: pdf
+  WFE_APP_ID: infin8v2
+  SUPER_ADMIN_KEYCLOAK_ID: '7595dd36-39eb-4709-8260-2ff111a98f12'  
+  EXPENSE_REVENUE_EXPENSE_BASE_URL: 'http://expense-revenue-service/api/v1/expense'
+kind: ConfigMap
+metadata:
+  name: deals-service-config-map
+  namespace: uat-cee-3

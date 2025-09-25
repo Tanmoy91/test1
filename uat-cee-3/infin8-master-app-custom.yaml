@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: infin8-master-pipeline-uat-custom
+  namespace: argocd
+  labels:
+    environment: ceebit-rt-uat-cee-3
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: argocd
+    server: https://kubernetes.default.svc
+  project: ceebit-rt-uat-cee-3
+  source:
+    path: uat-cee-3/applications
+    repoURL: 'ssh://git@www.inadev.net:7999/iv/infin8-argocd-manifests.git'
+    targetRevision: release/UAT
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        maxDuration: 3m0s
+        factor: 2
+    syncOptions:
+      - CreateNamespace=false
+      - Validate=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+      - ApplyOutOfSyncOnly=true
