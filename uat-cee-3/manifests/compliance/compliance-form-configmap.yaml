@@ -4,6 +4,8 @@ data:
   INFIN8V2_API_DEALS_BASE_URL: 'http://deals-service/api/v1'
   PORT: '3000'
   WFE_APP_ID: infin8v2
+  name: uat-app
+  version: 1.0.0
 kind: ConfigMap
 metadata:
   name: compliance-form-service-config-map
