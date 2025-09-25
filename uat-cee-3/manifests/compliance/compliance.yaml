@@ -55,16 +55,6 @@ spec:
                 configMapKeyRef:
                   key: INFIN8V2_API_DEALS_BASE_URL
                   name: compliance-form-service-config-map
-            - name: name
-              valueFrom:
-                configMapKeyRef:
-                  name: compliance-form-service-config-map
-                  key: name
-            - name: version
-              valueFrom:
-                configMapKeyRef:
-                  name: compliance-form-service-config-map
-                  key: version
           image: '577638400901.dkr.ecr.us-east-1.amazonaws.com/infini8v2-rt-dev:infin8v2-complianceForm-application-1.1.87'
           imagePullPolicy: IfNotPresent
           lifecycle:
